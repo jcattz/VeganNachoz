@@ -106,10 +106,40 @@ public class UserKernel extends ThreadedKernel {
     public void terminate() {
 	super.terminate();
     }
+	
+	//GETS A FREE PAGE FROM PAGETABLE
+	public int getPage()
+	{
+		Machine.interrupt().disable();//DISABLE THEM PESKY INTERRUPTS
+		
+		if(pageTable.isEmpty())//IF NO PAGES AVAILABLE
+		{
+			Machine.interrupt().enable();
+			return -1;//TELL'EM
+		}
+		else{//IF WE GOT PAGES
+			Machine.interrupt().enable();
+			return pageTable.removeFirst();//TELL'EM
+		}
+	}
+	
+	//ADDS A PAGE TO TABLE
+	public void addPage(int page)
+	{
+		machine.interrupt().disable();//DISABLE THEM PESKY INTERRUPTS
+		Lib.assertTrue(page >= 0);
+		Lib.assertTrue(page < Machine.processor().getNumPhysPages());//MAKE SURE PAGE NUMBER IS VALID 
+		
+		pageTable.addPage(pageNumber);//ADD PAGE
+		
+		machine.interrupt().enable();
+	}
 
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
 
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;
+	
+	private static LinkedList<Integer> pageTable = new LinkedList<Integer>;//MAKE A TABLE OF PAGES
 }
