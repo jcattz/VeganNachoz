@@ -421,13 +421,20 @@ public class UserProcess {
         // invoke open through stubFilesystem
         OpenFile returnValue  = UserKernel.fileSystem.open(filename, true);   
 
-        if (returnValue == null) {                                    
+        if (returnValue == null) {  
+            Lib.debug(dbgProcess, "No file named "+filename+" found.");
             return -1;                                                
         }                                                             
         else {                                                        
             int fileHandle = findEmptyFileDescriptor();                
-            if (fileHandle < 0)                                        
-                return -1;                                             
+            if (fileHandle < 0){
+		Lib.debug(dbgProcess, "No room for file.");
+                return -1;  
+	    }
+	    if (fd[fileHandle].toKill == true){
+		    Lib.debug(dbgProcess, "File flagged to be removed.");
+		    return -1;
+	    }
             else {                                                    
                 fd[fileHandle].fileName = filename;                   
                 fd[fileHandle].file = returnValue;                    
@@ -448,7 +455,7 @@ public class UserProcess {
     private int handleOpen(int address) {
         Lib.debug(dbgProcess, "[UserProcess.handleOpen] Start");      
 
-        Lib.debug(dbgProcess, "[UserProcess.handleOpen] a0: "+address+"\n");   
+        Lib.debug(dbgProcess, "[UserProcess.handleOpen] address: "+address+"\n");   
 
         // address is address of filename 
         String filename = readVirtualMemoryString(address, maxStringLen); 
@@ -458,13 +465,20 @@ public class UserProcess {
         // invoke open through stubFilesystem, truncate flag is set to false
         OpenFile returnValue  = UserKernel.fileSystem.open(filename, false); 
 
-        if (returnValue == null) {                      
+        if (returnValue == null) {  
+	    Lib.debug(dbgProcess, "No file named "+filename+" found.");
             return -1;                                  
         }                                               
         else {                                          
             int fileHandle = findEmptyFileDescriptor();  
-            if (fileHandle < 0)                      
-                return -1;                           
+            if (fileHandle < 0){
+		Lib.debug(dbgProcess, "No room for file.");
+                return -1;  
+	    }
+	    if (fd[fileHandle].toKill == true){
+		    Lib.debug(dbgProcess, "File flagged to be removed.");
+		    return -1;
+	    }
             else {                                  
                 fd[fileHandle].fileName = filename; 
                 fd[fileHandle].file = returnValue;  
@@ -495,7 +509,7 @@ public class UserProcess {
      * invalid, or if a network stream has been terminated by the remote host and
      * no more data is available.
      */
-    private int handleRead(int descriptor, int bufferAddress, int bufferSize) {                      /*@BAA*/
+    private int handleRead(int descriptor, int bufferAddress, int bufferSize) {          
         Lib.debug(dbgProcess, "handleRead()");     
          
         int handler = descriptor;                  
@@ -619,7 +633,9 @@ public class UserProcess {
             fd2.toKill = false;                         
         }                                              
 
-        fd2.fileName = null;                           
+        fd2.fileName = "";
+	fd2.file = null;
+	fd2.IOpos = 0;
 
         return returnValue ? 0 : -1;                   
     }                                                  
@@ -641,7 +657,7 @@ public class UserProcess {
 
         boolean returnValue = true;
 
-        // a0 is address of filename 
+        // address is address of filename 
         String filename = readVirtualMemoryString(address, maxFileD); 
 
         Lib.debug(dbgProcess, "filename: " + filename);                  
@@ -662,16 +678,10 @@ public class UserProcess {
              * return new file descriptors for the file until 
              * it is deleted.
              */
-            /* 
-             * TODO: If any processes still have the file open, 
-             * the file will remain in existence until the 
-             * last file descriptor referring to it is closed.
-             * 2/4/2014 HY
-             */
              fd[fileHandler].toKill = true;   
         } 
 
-        return retval ? 0 : -1;                                          
+        return returnValue ? 0 : -1;                                          
     }
 
 
