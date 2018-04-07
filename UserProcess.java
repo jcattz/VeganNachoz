@@ -399,7 +399,10 @@ public class UserProcess {
 	return 0;
     }
 	
-     /**
+     
+
+
+/**
      * Attempt to open the named disk file, creating it if does not exist,    *
      * and return a file descriptor that can be used to access the file.      *
      * Note that creat() can only be used to create files on disk; creat()    *
@@ -428,13 +431,13 @@ public class UserProcess {
         else {                                                        
             int fileHandle = findEmptyFileDescriptor();                
             if (fileHandle < 0){
-		Lib.debug(dbgProcess, "No room for file.");
+        Lib.debug(dbgProcess, "No room for file.");
                 return -1;  
-	    }
-	    if (fd[fileHandle].toKill == true){
-		    Lib.debug(dbgProcess, "File flagged to be removed.");
-		    return -1;
-	    }
+        }
+        if (fd[fileHandle].toKill == true){
+            Lib.debug(dbgProcess, "File flagged to be removed.");
+            return -1;
+        }
             else {                                                    
                 fd[fileHandle].fileName = filename;                   
                 fd[fileHandle].file = returnValue;                    
@@ -466,19 +469,19 @@ public class UserProcess {
         OpenFile returnValue  = UserKernel.fileSystem.open(filename, false); 
 
         if (returnValue == null) {  
-	    Lib.debug(dbgProcess, "No file named "+filename+" found.");
+        Lib.debug(dbgProcess, "No file named "+filename+" found.");
             return -1;                                  
         }                                               
         else {                                          
             int fileHandle = findEmptyFileDescriptor();  
             if (fileHandle < 0){
-		Lib.debug(dbgProcess, "No room for file.");
+        Lib.debug(dbgProcess, "No room for file.");
                 return -1;  
-	    }
-	    if (fd[fileHandle].toKill == true){
-		    Lib.debug(dbgProcess, "File flagged to be removed.");
-		    return -1;
-	    }
+        }
+        if (fd[fileHandle].toKill == true){
+            Lib.debug(dbgProcess, "File flagged to be removed.");
+            return -1;
+        }
             else {                                  
                 fd[fileHandle].fileName = filename; 
                 fd[fileHandle].file = returnValue;  
@@ -516,8 +519,8 @@ public class UserProcess {
         int bufaddr = bufferAddress;               
         int bufsize = bufferSize;                  
 
-        Lib.debug(dbgProcess, "handle: " + handle);                   
-        Lib.debug(dbgProcess, "buf address: " + vaddr);               
+        Lib.debug(dbgProcess, "handle: " + handler);                   
+        Lib.debug(dbgProcess, "buf address: " + bufaddr);               
         Lib.debug(dbgProcess, "buf size: " + bufsize);                
 
         // get data regarding to file descriptor
@@ -569,8 +572,8 @@ public class UserProcess {
         int bufaddr = bufferAddress;               
         int bufsize = bufferSize;                    
 
-        Lib.debug(dbgProcess, "handle: " + handle);                      
-        Lib.debug(dbgProcess, "buf address: " + vaddr);                  
+        Lib.debug(dbgProcess, "handle: " + handler);                      
+        Lib.debug(dbgProcess, "buf address: " + bufaddr);                  
         Lib.debug(dbgProcess, "buf size: " + bufsize);                   
 
         // get data regarding to file descriptor
@@ -634,8 +637,8 @@ public class UserProcess {
         }                                              
 
         fd2.fileName = "";
-	fd2.file = null;
-	fd2.IOpos = 0;
+    fd2.file = null;
+    fd2.IOpos = 0;
 
         return returnValue ? 0 : -1;                   
     }                                                  
@@ -683,7 +686,6 @@ public class UserProcess {
 
         return returnValue ? 0 : -1;                                          
     }
-
 
     private static final int
         syscallHalt = 0,
@@ -768,12 +770,32 @@ public class UserProcess {
 	}
     }
 	
+    private class FileDescriptor{
+            public FileDescriptor(){}
+            private String fileName = "";
+            private OpenFile file = null;
+            private int IOpos = 0;
+            private boolean toKill = false;
+        FileDescriptor(int filePointer){    
+        }
+       
+    }    
+
+    private int findEmptyFileDescriptor(){
+        for (int i = 0; i < maxFileD; i++){
+            if(fd[i].file == null){
+                return i;
+            }
+        }
+        return -1;
+    }
+	
     private int findFileDescriptorByName(String file){
         for (int i = 0; i < maxFileD; i++){
             if (fd[i].filename == file)
             return 1;
         }
-        return -1
+        return -1;
     }
 
     /** The program being run by this process. */
